@@ -1,17 +1,17 @@
+using System.Threading;
+using Microsoft.AspNetCore.Http;
+
 using System;
+using System.Text;
+using System.Net.WebSockets;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using WebApplication.Data;
-using WebApplication.Models;
-using WebApplication.Services;
 
 namespace WebApplication
 {
@@ -39,19 +39,7 @@ namespace WebApplication
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            // Add framework services.
-            services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlite(Configuration.GetConnectionString("DefaultConnection")));
-
-            services.AddIdentity<ApplicationUser, IdentityRole>()
-                .AddEntityFrameworkStores<ApplicationDbContext>()
-                .AddDefaultTokenProviders();
-
             services.AddMvc();
-
-            // Add application services.
-            services.AddTransient<IEmailSender, AuthMessageSender>();
-            services.AddTransient<ISmsSender, AuthMessageSender>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -63,20 +51,33 @@ namespace WebApplication
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                app.UseDatabaseErrorPage();
-                app.UseBrowserLink();
             }
             else
             {
                 app.UseExceptionHandler("/Home/Error");
             }
-
+            
+            app.UseWebSockets();
             app.UseStaticFiles();
 
-            app.UseIdentity();
+            app.Use(async (context, next) =>
+            {
+                if (context.WebSockets.IsWebSocketRequest)
+                {
+                    var webSocket = await context.WebSockets.AcceptWebSocketAsync();
+                    WebSockets.Add(webSocket);
+
+                    var buffer = new byte[1024 * 4];
+                    await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+                    await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Going away", CancellationToken.None);
+                }
+                else
+                {
+                    await next();
+                }
+            });
 
             // Add external authentication middleware below. To configure them please see https://go.microsoft.com/fwlink/?LinkID=532715
-
             app.UseMvc(routes =>
             {
                 routes.MapRoute(
@@ -84,5 +85,8 @@ namespace WebApplication
                     template: "{controller=Home}/{action=Index}/{id?}");
             });
         }
+        
+        public static List<WebSocket> WebSockets = new List<WebSocket>();
+        
     }
 }
