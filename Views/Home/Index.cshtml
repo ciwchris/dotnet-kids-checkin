@@ -7,7 +7,9 @@
 <div>
     <ul>
         @foreach(var checkin in Model) {
-            <li><div id="red" style="background-color:red">@checkin.Color</div></li>
+            <li><div id="@checkin.Color" style="background-color:@checkin.Color">
+                @(checkin.Count < @checkin.Max ? "Open" : "Full")
+            </div></li>
         }
     </ul>
 </div>
