@@ -1,6 +1,5 @@
 using System.Threading;
 using Microsoft.AspNetCore.Http;
-
 using System;
 using System.Text;
 using System.Net.WebSockets;
@@ -12,7 +11,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-
+using WebApplication.Services;
 using Newtonsoft.Json;
 
 namespace WebApplication
@@ -42,6 +41,8 @@ namespace WebApplication
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc();
+            services.AddMemoryCache();
+            services.AddTransient<ICheckinRetrievalService, CheckinRetrievalService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

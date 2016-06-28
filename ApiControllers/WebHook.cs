@@ -8,17 +8,26 @@ using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using WebApplication.Services;
 
 namespace WebApplication.Controllers
 {
     [Route("api/[controller]")]
     public class WebHookController : Controller
     {
+        private ICheckinRetrievalService checkinRetrievalService;
+
+        public WebHookController(ICheckinRetrievalService checkinRetrievalService)
+        {
+            this.checkinRetrievalService = checkinRetrievalService;
+        }
 
         [HttpGet]
         public async Task<IActionResult> Get()
         {
-            
+            var checkinsC = checkinRetrievalService.CreateUpdatedCheckinList().Result;
+            return Ok("This is what I endud up with: " + checkinsC.Count);
+
             var checkins = new List<CheckinProperties>();
             checkins.Add(new CheckinProperties { Id = 108117, Color = "red", Count = 3, Max = 3 });
             checkins.Add(new CheckinProperties { Id = 108119, Color = "orange", Count = 1, Max = 3 });
