@@ -1,6 +1,8 @@
 var webSocket;
 $().ready(function () {
-    webSocket = new WebSocket("ws://localhost:5000");
+    //webSocket = new WebSocket("ws://localhost:5000");
+    webSocket = new WebSocket("wss://kids-checkin.azurewebsites.net");
+    
     webSocket.onopen = function () {
         console.log("connected");
     };
