@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Net.Http;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Security.Cryptography;
@@ -40,14 +41,16 @@ namespace WebApplication.Services
             {
                 newCheckins = GetCheckinsOnPage(page++).Result;
             } while(WasUnseenCheckinReceived(currentCheckins, newCheckins));
-            cache.Set("checkins", newCheckins);
+            cache.Set("checkins", currentCheckins);
 
-            return await Task.Run(() => newCheckins);
+            return await Task.Run(() => currentCheckins);
         }
 
         private bool WasUnseenCheckinReceived(Dictionary<string, string> current, Dictionary<string, string> newCheckins)
         {
-            return false;
+            var count = current.Count();
+            newCheckins.ToList().ForEach(entry => current[entry.Key] = entry.Value);
+            return count != current.Count();
         }
 
         private async Task<Dictionary<string, string>> GetCheckinsOnPage(int page = 1)
