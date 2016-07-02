@@ -1,10 +1,13 @@
 var webSocket;
 $().ready(function () {
-    webSocket = new WebSocket("ws://localhost:5000");
+    var scheme = location.host.startsWith('localhost')
+        ? 'ws://'
+        : 'wss://';
+    webSocket = new WebSocket(scheme + location.host);
     //webSocket = new WebSocket("wss://kids-checkin.azurewebsites.net");
     
     webSocket.onopen = function () {
-        console.log("connected");
+        console.log('connected');
     };
     webSocket.onmessage = function (evt) {
         var classes = JSON.parse(evt.data);
@@ -14,6 +17,6 @@ $().ready(function () {
         }
     };
     webSocket.onclose = function () {
-        console.log("disconnected");
+        console.log('disconnected');
     };
 });

@@ -11,7 +11,9 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using WebApplication.Services;
+using WebApplication.Models;
 using Newtonsoft.Json;
 
 namespace WebApplication
@@ -27,7 +29,6 @@ namespace WebApplication
 
             if (env.IsDevelopment())
             {
-                // For more details on using the user secret store see https://go.microsoft.com/fwlink/?LinkID=532709
                 builder.AddUserSecrets();
             }
 
@@ -37,11 +38,18 @@ namespace WebApplication
 
         public IConfigurationRoot Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc();
             services.AddMemoryCache();
+
+            services.AddOptions();
+            services.Configure<ApiConfiguration>(apiOptions =>
+	        {
+                apiOptions.SecretKey = Configuration["secretKey"];
+                apiOptions.Token = Configuration["token"];
+	        });
+            
             services.AddTransient<ICheckinRetrievalService, CheckinRetrievalService>();
         }
 
@@ -80,7 +88,6 @@ namespace WebApplication
                 }
             });
 
-            // Add external authentication middleware below. To configure them please see https://go.microsoft.com/fwlink/?LinkID=532715
             app.UseMvc(routes =>
             {
                 routes.MapRoute(
